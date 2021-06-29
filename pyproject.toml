@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "covid19-question-classification"
+version = "0.1.0"
+description = ""
+authors = ["Adebayo Akinlalu <bayoakinlalu@yahoo.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8.5"
+fastai = "^2.4"
+pandas = "^1.2.5"
+streamlit = "^0.83.0"
+tensorflow = "^2.5.0"
+matplotlib = "^3.4.2"
+mlflow = "^1.18.0"
+fire = "^0.4.0"
+databases = {extras = ["postgresql"], version = "^0.4.3"}
+psycopg2-binary = "^2.9.1"
+
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+jupyterlab = "^3.0.16"
+black = "^21.6b0"
+flake8 = "^3.9.2"
+mypy = "^0.910"
+bandit = "^1.7.0"
+pre-commit = "^2.13.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
