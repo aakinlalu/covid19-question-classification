@@ -8,14 +8,13 @@ import pandas as pd
 
 from .config import DATABASE_URLs
 
-# async def session():
-#     async with databases.Database(DATABASE_URL) as database:
-#         session = await database.connect()
-#         return session
 database = databases.Database(DATABASE_URLs)
 
 # Create table
 async def create_table():
+    """
+    :TODO
+    """
     await database.connect()
 
     query = """
@@ -31,6 +30,9 @@ async def create_table():
 
 
 async def insert_one_into_table(question, classification):
+    """
+    :TODO
+    """
     await database.connect()
     # if question is None:
     #     return None
@@ -49,8 +51,6 @@ async def insert_one_into_table(question, classification):
 
     query = "SELECT * FROM tbl_question_class limit 10"
     rows = await database.fetch_all(query=query)
-    # return rows
-    # await database.disconnect()
     return rows
 
 

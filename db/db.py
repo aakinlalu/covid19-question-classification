@@ -1,91 +1,99 @@
 import datetime
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Tuple, Union
 
 import pandas as pd
 import psycopg2
 from psycopg2 import OperationalError
 
+from configs.configs import POSTGRES_HOST, POSTGRES_NAME, POSTGRES_PORT
 
-def create_connection(db_name, db_host, db_port):
-    """[summary]
+
+def create_connection(
+    db_name: str,
+    db_host: str,
+    db_port: int,
+    db_user: str = None,
+    db_password: str = None,
+) -> Union[psycopg2.extensions.connection, None]:
+    """Postgres connector to establish connection with database
 
     Args:
-        db_name ([type]): [description]
-        db_host ([type]): [description]
-        db_port ([type]): [description]
+        db_name (str): database name
+        db_host (str): database host
+        db_port (int): database port
+        db_user (str): username access the database
+        db_password (str): password to the database
 
     Returns:
-        [type]: [description]
+        Union: connection session or None
     """
     connection = None
     try:
-        connection = psycopg2.connect(
-            database=db_name,
-            # user=db_user,
-            # password=db_password,
-            host=db_host,
-            port=db_port,
-        )
+        if db_user is None:
+            connection = psycopg2.connect(
+                database=db_name,
+                host=db_host,
+                port=db_port,
+            )
+        else:
+            connection = psycopg2.connect(
+                database=db_name,
+                user=db_user,
+                password=db_password,
+                host=db_host,
+                port=db_port,
+            )
+
         print("Connection to PostgreSQL DB successful")
-    except OperationalError as e:
-        print(f"The error '{e}' occurred")
+    except Exception as e:
+        raise OperationalError(e)
     return connection
 
 
 @dataclass
 class Db:
-    db_name: str = "postgres"
-    db_host: str = "localhost"
-    db_port: int = 5438
-    connection: Optional[None] = create_connection(db_name, db_host, db_port)
+    db_name: str = POSTGRES_NAME
+    db_host: str = POSTGRES_HOST
+    db_port: int = POSTGRES_PORT
+    connection: Union[psycopg2.extensions.connection, None] = create_connection(
+        db_name, db_host, db_port
+    )
     conn: Optional[None] = f"postgresql://{db_host}:{db_port}/{db_name}"
 
-    def create_database(self, query):
-        """[summary]
+    def execute_query(self, query: str):
+        """The function execute any sql query such as create table,run select statement and so on.
 
         Args:
-            query ([type]): [description]
+            query (str): sql query
         """
         self.connection.autocommit = True
         cursor = self.connection.cursor()
         try:
             cursor.execute(query)
-            print("Query executed successfully")
-        except OperationalError as e:
-            print(f"The error '{e}' occurred")
+        except Exception as e:
+            raise OperationalError(e)
 
-    def execute_query(self, query):
-        """[summary]
-
-        Args:
-            query ([type]): [description]
-        """
-        self.connection.autocommit = True
-        cursor = self.connection.cursor()
-        try:
-            cursor.execute(query)
-            print("Query executed successfully")
-        except OperationalError as e:
-            print(f"The error '{e}' occurred")
-
-    def insert_into_table(self, values):
-        """[summary]
+    def insert_into_table(self, values: Tuple[str, str, datetime.datetime]) -> None:
+        """This function is specifically to insert into table 'tbl_question_class'
 
         Args:
-            values ([type]): [description]
+            values (Tuple): list of input elements
         """
         insert_query = f"INSERT INTO tbl_question_class (question, classification, created_on) VALUES {'%s'}"
         questions = [values]
         self.connection.autocommit = True
         cursor = self.connection.cursor()
-        cursor.execute(insert_query, questions)
+        try:
+            cursor.execute(insert_query, questions)
+        except Exception as e:
+            raise OperationalError(e)
 
-    def execute_read_query(self):
-        """[summary]
+    def execute_read_query(self) -> list:
+        """Read all data in tbl_question_class
 
         Returns:
-            [type]: [description]
+            list: list of rows of data
         """
         cursor = self.connection.cursor()
         result = None
@@ -94,19 +102,25 @@ class Db:
             cursor.execute(query)
             result = cursor.fetchall()
             return result
-        except OperationalError as e:
-            print(f"The error '{e}' occurred")
+        except Exception as e:
+            raise OperationalError(e)
 
-    def read_sql(self):
-        """[summary]
+    def read_sql(self, no_of_rows: int = 10) -> pd.DataFrame:
+        """Get lastest number of rows from tbl_question_class as pandas dataframe.
+
+        Args:
+            no_of_rows (int): number of rows to return
 
         Returns:
-            [type]: [description]
+            pd.DataFrame: pandas DataFrame
         """
-        df = pd.read_sql_table(
-            table_name="tbl_question_class",
-            con=self.conn,
-            schema="public",
-            parse_dates=["created_on"],
-        )
-        return df
+        try:
+            df = pd.read_sql_table(
+                table_name="tbl_question_class",
+                con=self.conn,
+                schema="public",
+                parse_dates=["created_on"],
+            )
+            return df.tail(no_of_rows)
+        except Exception as e:
+            raise OperationalError(e)

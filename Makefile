@@ -25,9 +25,5 @@ quality:
 		@echo 'check for linting, Typing, code formating, safety'
 		${POETRY} run tox -e py
 
-run:
-		@echo 'Deploying'
-		${POETRY} run python main.py
-
-deploy-dash:
+deploy:
 		${POETRY} run streamlit run main.py &
