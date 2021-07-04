@@ -7,9 +7,8 @@ authors = ["Adebayo Akinlalu <bayoakinlalu@yahoo.com>"]
 [tool.poetry.dependencies]
 python = "^3.8.5"
 fastai = "^2.4"
-pandas = "^1.2.5"
+pandas = "^1.1.0"
 streamlit = "^0.83.0"
-tensorflow = "^2.5.0"
 matplotlib = "^3.4.2"
 mlflow = "^1.18.0"
 fire = "^0.4.0"
@@ -18,6 +17,11 @@ psycopg2-binary = "^2.9.1"
 eliot = "^1.13.0"
 eliot-tree = "^21.0.0"
 requests = "^2.25.1"
+schedule = "^1.1.0"
+boto3 = "^1.17.104"
+ludwig = "^0.4"
+petastorm = "^0.11.1"
+
 
 
 [tool.poetry.dev-dependencies]
@@ -32,6 +36,7 @@ isort = "^5.9.1"
 safety = "^1.10.3"
 tox = "^3.23.1"
 pytest-cov = "^2.12.1"
+moto = {extras = ["all"], version = "^2.0.10"}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

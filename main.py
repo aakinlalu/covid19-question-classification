@@ -7,11 +7,15 @@ import streamlit as st
 
 from covid19_question_classification.predict import Predict
 from db.db import Db
+from configs.configs import MODEL_URL_PATH
 
 path = Path(__file__).resolve().parent.absolute()
 MODEL_PATH = f"{path}/model/model.pkl"
 
+
 Pred = Predict(MODEL_PATH)
+
+# Pred = Predict(MODEL_URL_PATH, flag=True)
 
 create_users_table = """
         CREATE TABLE IF NOT EXISTS tbl_question_class (
@@ -48,6 +52,9 @@ if question is not None:
     with st.spinner("wait for it..."):
         st.write("**Question:**", question)
         pred = Pred.predict_one(question)
+        # pred_df= Pred.predict(question)
+        # st.table(pred_df)
+        # pred_df['created_on'] = datetime.datetime.now()
         st.write("**Classification:**", pred)
         values = (question, pred, datetime.datetime.now())
         dB.execute_query(create_users_table)

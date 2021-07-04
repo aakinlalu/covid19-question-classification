@@ -6,6 +6,4 @@ POSTGRES_HOST = "losthost"
 POSTGRES_PORT = 5438
 POSTGRES_NAME = "postgres"
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-DATABASE_URLs = f"postgresql://localhost:5438/postgres"
+MODEL_URL_PATH = "s3://ml-artifact-store/model/3://ml-artifact-store/model/experiment_run_1_covid_classifier/model"

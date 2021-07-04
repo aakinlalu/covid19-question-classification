@@ -4,3 +4,6 @@ model/*.pth
 model*.pkl
 __pycache__
 */__pycache__
+model_artifact
+results
+data

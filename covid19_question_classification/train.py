@@ -13,7 +13,7 @@ class MultiClass:
     seq_len: int
     text_col: str = "Questiom"
     label: str = "label"
-    dls_lm: Optional = None
+    dls_lm: Optional[None] = None
 
     def create_lm(self, valid_pct=0.2, drop_mult=0.3):
         """

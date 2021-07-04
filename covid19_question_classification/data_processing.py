@@ -5,8 +5,11 @@ from typing import Tuple
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.preprocessing.text import Tokenizer, text_to_word_sequence
+from eliot import start_action, start_task
+
+from loggings.logger import __LOGGER__
+
+__LOGGER__
 
 
 @dataclass
@@ -14,46 +17,47 @@ class DataProcessing:
     raw_path: str
     feature: str
     label: str
-    data: pd.DataFrame = None
     test_size: float = 0.25
+    data: pd.DataFrame = None
+    x_train: pd.DataFrame = None
+    x_test: pd.DataFrame = None
+    y_train: pd.DataFrame = None
+    y_test: pd.DataFrame = None
 
     @property
     def read_file(self) -> None:
         """[summary]"""
         self.data = pd.read_csv(self.raw_path)
 
-    def max_length(self) -> int:
-        """[summary]
-
-        Returns:
-            int: [description]
-        """
-        data = self.data_clean()
-        return max(
-            [
-                len(item.split(" "))
-                for item in data[self.feature]
-                if isinstance(item, str)
-            ]
-        )
-
-    def data_clean(self):
+    def data_clean(self, save_flag=False):
         """[summary]
 
         Returns:
             [type]: [description]
         """
-        if self.data is None:
-            self.read_file
+        with start_task(action_type="data_clean") as action:
+            try:
+                if self.data is None:
+                    self.read_file
+                action.log(message_type="info", length_of_data=len(self.data))
 
-        self.data = self.data[self.data[self.feature].notnull()]
-        self.data = self.data[self.data[self.label].notnull()]
+                with start_action(action_type="filter_data") as action:
+                    self.data = self.data[self.data[self.feature].notnull()]
+                    self.data = self.data[self.data[self.label].notnull()]
+                    action.log(message_type="info", length_of_data=len(self.data))
 
-        self.data["label"] = self.data[self.label].apply(
-            lambda x: str(x).split("-")[0].strip()
-        )
+                self.data["label"] = self.data[self.label].apply(
+                    lambda x: str(x).split("-")[0].strip()
+                )
+                if save_flag == True:
+                    self.data.to_csv(
+                        "s3://ml-artifact-store/data/filtered.csv", index=False
+                    )
 
-        return self.data
+            except Exception as e:
+                raise ValueError(e)
+
+            return self.data
 
     def dataset_split(self) -> Tuple[pd.DataFrame]:
         """[summary]
@@ -61,53 +65,15 @@ class DataProcessing:
         Returns:
             Tuple[pd.DataFrame]: [description]
         """
-        self.data = self.data_clean()
-        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(
-            self.data[self.feature],
-            self.data["label"],
-            test_size=self.test_size,
-            random_state=0,
-        )
-        return self.x_train, self.x_test, self.y_train, self.y_test
-
-    def tokenize_sequence(self, text, num_words, padding: str = "post"):
-        """[summary]
-
-        Args:
-            text ([type]): [description]
-            num_words ([type]): [description]
-            padding (str, optional): [description]. Defaults to "post".
-
-        Returns:
-            [type]: [description]
-        """
-        self.tokenizer = Tokenizer(
-            num_words=num_words,
-            filters='!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n',
-            lower=True,
-        )
-        self.tokenizer.fit_on_texts(text.values)
-        text = self.tokenizer.texts_to_sequences(text)
-        self.maxlen = self.max_length() + 10
-        text = pad_sequences(text, padding=padding, maxlen=self.maxlen)
-        return text
-
-    def tokenize_sequence_feature(self, num_words, padding: str = "post"):
-        """[summary]
-
-        Args:
-            num_words ([type]): [description]
-            padding (str, optional): [description]. Defaults to "post".
-
-        Returns:
-            [type]: [description]
-        """
-        res = []
-        x_train, x_test, y_train, y_test = self.dataset_split()
-        x_train = self.tokenize_sequence(x_train, num_words, padding)
-        x_test = self.tokenize_sequence(x_test, num_words, padding)
-        encoder = LabelEncoder()
-        y_train = encoder.fit_transform(y_train)
-        y_test = encoder.fit_transform(y_test)
-
-        return x_train, x_test, y_train, y_test
+        with start_action(action_type="dataset_split", test_size=self.test_size):
+            try:
+                self.data = self.data_clean()
+                self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(
+                    self.data[self.feature],
+                    self.data["label"],
+                    test_size=self.test_size,
+                    random_state=0,
+                )
+            except Exception as e:
+                raise ValueError(e)
+            return self.x_train, self.x_test, self.y_train, self.y_test
