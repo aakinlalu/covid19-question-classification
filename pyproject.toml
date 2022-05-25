@@ -10,7 +10,7 @@ fastai = "^2.4"
 pandas = "^1.1.0"
 streamlit = "^0.83.0"
 matplotlib = "^3.4.2"
-mlflow = "^1.18.0"
+mlflow = "^1.23.1"
 fire = "^0.4.0"
 databases = {extras = ["postgresql"], version = "^0.4.3"}
 psycopg2-binary = "^2.9.1"
