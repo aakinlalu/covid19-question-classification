@@ -26,7 +26,7 @@ petastorm = "^0.11.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
-jupyterlab = "^3.0.16"
+jupyterlab = "^3.0.17"
 black = "^21.6b0"
 flake8 = "^3.9.2"
 mypy = "^0.910"
